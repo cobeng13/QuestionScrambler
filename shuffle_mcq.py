@@ -175,7 +175,6 @@ def format_combined(questions: Sequence[ShuffledQuestion]) -> str:
     for i, q in enumerate(questions, start=1):
         out.append(f"{i}. {q.stem_lines[0]}")
         out.extend(q.stem_lines[1:])
-        out.append("")
         for letter, text in zip("ABCD", q.shuffled_choices):
             out.append(f"{letter}. {text}")
         out.append("")
@@ -189,7 +188,6 @@ def format_questions_only(questions: Sequence[ShuffledQuestion]) -> str:
     for i, q in enumerate(questions, start=1):
         out.append(f"{i}. {q.stem_lines[0]}")
         out.extend(q.stem_lines[1:])
-        out.append("")
         for letter, text in zip("ABCD", q.shuffled_choices):
             out.append(f"{letter}. {text}")
         out.append("")
