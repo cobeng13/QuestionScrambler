@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Sequence, Tuple
 
-QUESTION_START_RE = re.compile(r"^\s*(\d+)\.\s+(.*)$")
+QUESTION_START_RE = re.compile(r"^\s*(\d+)\.\s*(.*)$")
 CHOICE_RE = re.compile(r"^\s*([A-D])\.\s+(.*)$")
 ANSWER_RE = re.compile(r"^\s*answer\s*:\s*([A-D])\s*$", re.IGNORECASE)
 
@@ -71,8 +71,13 @@ def parse_questions(lines: List[str]) -> Tuple[List[Question], int]:
 
         start_idx = i
         start_line_no = i + 1
-        stem_lines = [qmatch.group(2)]
+        first_stem = qmatch.group(2)
+        stem_lines = [first_stem] if first_stem else []
         i += 1
+
+        # If numbering line is standalone (e.g., "1."), skip spacer blanks before stem text.
+        while i < n and not stem_lines and lines[i].strip() == "":
+            i += 1
 
         # Continue stem until the first choice line.
         while i < n and not CHOICE_RE.match(lines[i]):
@@ -83,6 +88,12 @@ def parse_questions(lines: List[str]) -> Tuple[List[Question], int]:
                 )
             stem_lines.append(lines[i])
             i += 1
+
+        if not stem_lines:
+            raise ParseError(
+                f"Malformed question near line {start_line_no}: missing question stem text before choices.\n"
+                f"Snippet:\n{snippet(lines, start_line_no, min(n, i + 2))}"
+            )
 
         if i >= n:
             raise ParseError(
